@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hot Ride Heist — Redirect</title>
+
+  <!-- iOS deep link fallback (isteğe göre) -->
+  <meta name="apple-itunes-app" content="app-id=6753622072">
+
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;background:#0b0b0d;color:#fff}
+    .card{max-width:420px;padding:20px;border-radius:12px;background:linear-gradient(180deg,#0f1720 0,#071018 100%);text-align:center;box-shadow:0 6px 30px rgba(0,0,0,.6)}
+    .btn{display:inline-block;margin:10px;padding:12px 18px;border-radius:8px;background:#1f73ff;color:#fff;text-decoration:none;font-weight:600}
+    .muted{color:#9aa7b2;font-size:13px;margin-top:8px}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Hot Ride Heist</h2>
+    <p class="muted">Yönlendiriliyorsun… eğer otomatik olmazsa butona bas.</p>
+
+    <div id="actions" style="margin-top:14px;">
+      <a id="open-store" class="btn" href="#">Open</a>
+    </div>
+
+    <p class="muted" id="info">Detecting device...</p>
+  </div>
+
+<script>
+(function(){
+  // STORE LINKS (senin sağladığın linkler)
+  const IOS_STORE = "https://apps.apple.com/us/app/hot-ride-heist/id6753622072";
+  const ANDROID_STORE = "https://play.google.com/store/apps/details?id=com.canaltintas.hotrideheist";
+  const WEB_FALLBACK = "https://your-landing.example.com/"; // isteğe bağlı (aynı sayfa veya promosyon)
+
+  // Optional: UTM ekle (reklam kampanyası için)
+  const utm = "?utm_source=one-link&utm_medium=redirect&utm_campaign=organic";
+
+  // Derive deep links / intent
+  // Android intent (tries to open app directly) — Play Store fallback if not installed
+  const androidIntent = "intent://launch/#Intent;package=com.canaltintas.hotrideheist;scheme=hotride;end";
+  // iOS universal link (requires apple-site-association setup to open app). Without that, go to appstore.
+  const iosDeep = "hotride://"; // eğer app URL scheme varsa
+
+  // UI
+  const info = document.getElementById("info");
+  const btn = document.getElementById("open-store");
+
+  function isAndroid() {
+    return /android/i.test(navigator.userAgent);
+  }
+  function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  }
+
+  function redirectTo(url) {
+    // ilk deneme: location.replace ile yönlendir
+    window.location.replace(url);
+  }
+
+  // Hızlı otomatik yönlendirme mantığı:
+  if (isAndroid()) {
+    info.textContent = "Android cihaz tespit edildi — Play Store veya uygulamaya yönlendiriliyor...";
+    // Öncelikle intent (app varsa açsın), fallback Play Store
+    // Not: bazı tarayıcılarda intent desteklenir; desteklenmezse direkt Play Store'a gidecek
+    setTimeout(()=> redirectTo(androidIntent), 250);
+    // buton hedefini ayarla
+    btn.href = ANDROID_STORE + utm;
+  } else if (isIOS()) {
+    info.textContent = "iOS cihaz tespit edildi — App Store'a yönlendiriliyor...";
+    // Eğer universal link / scheme varsa doğrudan açmayı deneyebilirsin:
+    // setTimeout(()=> redirectTo(iosDeep), 250); // sadece eğer scheme/universal kuruluysa
+    // fallback: App Store
+    setTimeout(()=> redirectTo(IOS_STORE + utm), 350);
+    btn.href = IOS_STORE + utm;
+  } else {
+    info.textContent = "Mobil cihaz tespit edilemedi — mağaza sayfasına gidiliyor...";
+    btn.href = WEB_FALLBACK;
+    // web fallback veya universal promosyon sayfası
+    setTimeout(()=> redirectTo(WEB_FALLBACK), 500);
+  }
+
+  // Kullanıcı manuel basarsa
+  btn.addEventListener("click", function(e){
+    // doğal davranış bırak (a tag)
+  });
+
+})();
+</script>
+</body>
+</html>
